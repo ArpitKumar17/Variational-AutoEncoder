@@ -21,65 +21,6 @@ x_train = x_train.astype('float32')/255
 x_test = x_test.astype('float32')/255
 x_train = x_train.reshape((len(x_train),np.prod(x_train.shape[1:])))
 x_test = x_test.reshape((len(x_test),np.prod(x_test.shape[1:])))
-
-"""Sampling Proccess(Error as can't pass keratensor to tensorflow)
-
-"""
-
-original_dimension = 784
-intermidiate_dimension = 256
-latent_dimension = 2
-
-input_layer = keras.Input(shape=(original_dimension,))
-encoded = keras.layers.Dense(intermidiate_dimension,activation='relu')(input_layer)
-x_mean = keras.layers.Dense(latent_dimension)(encoded)
-x_log_var = keras.layers.Dense(latent_dimension)(encoded)
-def Sampling(args):
-  mean_val, var_val = args
-  batch = tf.shape(mean_val)[0]
-  dim = tf.shape(mean_val)[1]
-  epsilon = tf.keras.backend.random_normal(shape=(batch,dim))
-  z = mean_val + tf.exp(0.5*var_val)*epsilon
-  return z
-z =keras.layers.Lambda(Sampling,output_shape = (latent_dimension,))([x_mean,x_log_var])
-decoded = keras.layers.Dense(intermidiate_dimension,activation='relu')(z)
-decoded = keras.layers.Dense(original_dimension,activation='sigmoid')(decoded)
-vae = keras.Model(input_layer,decoded,name='vae')
-reconstruction_loss = original_dimension*keras.losses.binary_crossentropy(input_layer,decoded)
-def kl_loss_layer(args):
-    x_mean, x_log_var = args
-    kl_batch = -0.5 * tf.keras.backend.sum(1 + x_log_var - tf.keras.backend.square(x_mean) - tf.keras.backend.exp(x_log_var), axis=-1)
-    return kl_batch
-original_dimension = 784
-intermidiate_dimension = 256
-latent_dimension = 2
-
-input_layer = keras.Input(shape=(original_dimension,))
-encoded = keras.layers.Dense(intermidiate_dimension,activation='relu')(input_layer)
-x_mean = keras.layers.Dense(latent_dimension)(encoded)
-x_log_var = keras.layers.Dense(latent_dimension)(encoded)
-def Sampling(args):
-  mean_val, var_val = args
-  batch = tf.shape(mean_val)[0]
-  dim = tf.shape(mean_val)[1]
-  epsilon = tf.keras.backend.random_normal(shape=(batch,dim))
-  z = mean_val + tf.exp(0.5*var_val)*epsilon
-  return z
-z =keras.layers.Lambda(Sampling,output_shape = (latent_dimension,))([x_mean,x_log_var])
-decoded = keras.layers.Dense(intermidiate_dimension,activation='relu')(z)
-decoded = keras.layers.Dense(original_dimension,activation='sigmoid')(decoded)
-vae = keras.Model(input_layer,decoded,name='vae')
-reconstruction_loss = original_dimension*keras.metrics.binary_crossentropy(input_layer,decoded)
-kl_loss =  -0.5 * tf.keras.backend.sum(1 + x_log_var - tf.keras.backend.square(x_mean) -tf.keras.backend.exp(x_log_var), axis=-1)
-vae_loss = tf.keras.backend.mean(tf.keras.backend.add(reconstruction_loss, kl_loss))
-vae.add_loss(vae_loss)
-vae.compile(optimizer='adam')
-encoder = keras.Model(input_layer,z,name='encoder')
-decoder_input = keras.Input(shape=(latent_dimension,))
-decoder_layer= vae.layers[-2](decoder_input)
-decoder_layer = vae.layers[-1](decoder_layer)
-decoder = keras.Model(decoder_input,decoder_layer,name='decoder')
-
 """CLASS-WISE IMPLEMENTATION
 
 """
